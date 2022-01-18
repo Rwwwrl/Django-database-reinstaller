@@ -1,0 +1,6 @@
+__pycache__
+.vscode
+app
+main
+for_test.py
+manage.py
