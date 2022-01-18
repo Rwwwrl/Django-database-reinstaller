@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_COMMITTED
 
-from . import print_service as p
+from . import print_tool as p
 
 from django.conf import settings
 from collections import namedtuple
@@ -39,7 +39,6 @@ class DbTool:
                 "port": db_port,
                 "password": password,
             }
-        self.__conn = psycopg2.connect(**self.connect_data)
 
     def __enter__(self):
         self.__conn = psycopg2.connect(**self.connect_data)

@@ -3,7 +3,7 @@ import os
 from django.core.management.base import BaseCommand
 
 from ...installer_tool import Installer
-from ... import print_service as p
+from ... import print_tool as p
 
 
 class Command(BaseCommand):
@@ -16,7 +16,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         p.info('Начало скрипта')
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
         if options['postgres']:
             Installer.drop_and_create_dbs()
         if options['migrations']:
