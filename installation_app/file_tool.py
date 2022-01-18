@@ -1,8 +1,7 @@
 import os
 from sys import platform
 
-from services import print_service as p
-
+from . import print_service as p
 
 
 class FileTool:

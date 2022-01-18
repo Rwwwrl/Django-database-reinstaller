@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_COMMITTED
 
-from services import print_service as p
+from . import print_service as p
 
 from django.conf import settings
 from collections import namedtuple
