@@ -94,7 +94,7 @@ class DbTool:
         return inner
 
     @staticmethod
-    def __get_used_databases_in_project() -> List[tuple(str, str)]:
+    def __get_used_databases_in_project() -> List[tuple[str, str]]:
         """
         получить спосок используемых бд в проекте
         """
@@ -126,14 +126,26 @@ class DbTool:
             f"Не было найдено настроек для бд '{db_name}' в settings.DATABASES, будут использованы настройки, которые вы передали в экземляр"
         )
 
+    @staticmethod
+    def is_this_db_in_ignore(db_name: str) -> bool:
+        databases_to_ignore = getattr(settings, "DATABASES_TO_IGNORE", [])
+        return databases_to_ignore == ["*"] or db_name in databases_to_ignore
+
     @check_is_user_connected_to_free_db
     def drop_project_databases(self) -> None:
         """
         удалить все базы данных, которые есть в проекте
         """
         sql_string = "DROP DATABASE IF EXISTS {};"
+        bd_that_were_deleted = []
         for db in self.databases_in_project:
-            self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
+            if not self.is_this_db_in_ignore(db.db_postgres_name):
+                bd_that_were_deleted.append(db.db_postgres_name)
+                self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
+        if bd_that_were_deleted:
+            p.info(f"БЫЛИ УДАЛЕНЫ БД: {bd_that_were_deleted}")
+        else:
+            p.info("НЕ БЫЛО УДАЛЕНО НИ ОДНОЙ БД")
 
     @check_is_user_connected_to_free_db
     def create_project_databases(self) -> None:
@@ -141,5 +153,12 @@ class DbTool:
         создать пустые базы данных? которые есть в проекте
         """
         sql_string = "CREATE DATABASE {};"
+        bd_that_were_created = []
         for db in self.databases_in_project:
-            self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
+            if not self.is_this_db_in_ignore(db.db_postgres_name):
+                bd_that_were_created.append(db.db_postgres_name)
+                self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
+        if bd_that_were_created:
+            p.info(f"БЫЛИ СОЗДАНЫ ЭТИ БД: {bd_that_were_created}")
+        else:
+            p.info("НЕ БЫЛО СОЗДАНО НИ ОДНОЙ БД")
