@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_COMMITTED
 from collections import namedtuple
-from typing import List
+from typing import List, Union
 
 from . import print_tool as p
 
@@ -20,12 +20,16 @@ class DbTool:
     db_connections = []
 
     def __new__(cls, db_name, *args, **kwargs):
+        cls.databases_used_in_project = cls.__get_used_databases_in_project()
+        cls.available_databases = list(
+            filter(lambda db: not cls.is_this_db_in_ignore(db.db_postgres_name), cls.databases_used_in_project)
+        )
+
         for db_connection in cls.db_connections:
             if db_connection.connect_data["database"] == db_name:
                 return db_connection
         new_db_connection_instance = super().__new__(cls)
         cls.db_connections.append(new_db_connection_instance)
-        cls.databases_in_project = cls.__get_used_databases_in_project()
         return new_db_connection_instance
 
     def __init__(
@@ -86,7 +90,7 @@ class DbTool:
         """
 
         def inner(self_instance, *args, **kwargs):
-            if self_instance.connect_data["database"] in self_instance.databases_in_project:
+            if self_instance.connect_data["database"] in self_instance.available_databases:
                 p.error("Вы пытаетесь удалить или создать бд подключившись к одной из этих баз данных")
                 raise SystemError
             return func(self_instance, *args, **kwargs)
@@ -107,11 +111,11 @@ class DbTool:
                 databases_in_project.append(db_data)
         return databases_in_project
 
-    def __get_bd_info_by_django_settings(self, db_name: str) -> None:
+    def __get_bd_info_by_django_settings(self, db_name: str) -> Union[dict[str, str], None]:
         """
         получить все настройки для бд из файла settings, чтобы не дублировать их
         """
-        for db in self.databases_in_project:
+        for db in self.databases_used_in_project:
             if db.db_postgres_name == db_name:
                 p.info("Была найдены настройки бд в джанго проекте, эти настройки и будут использованы для подключения")
                 db_config = settings.DATABASE[db.db_django_name]
@@ -128,6 +132,10 @@ class DbTool:
 
     @staticmethod
     def is_this_db_in_ignore(db_name: str) -> bool:
+        """
+        проверить, находится ли бд с имененем db_name в списке игнора для переустановки
+        ( в setttings.DATABASES_TO_IGNORE )
+        """
         databases_to_ignore = getattr(settings, "DATABASES_TO_IGNORE", [])
         return databases_to_ignore == ["*"] or db_name in databases_to_ignore
 
@@ -137,15 +145,12 @@ class DbTool:
         удалить все базы данных, которые есть в проекте
         """
         sql_string = "DROP DATABASE IF EXISTS {};"
-        bd_that_were_deleted = []
-        for db in self.databases_in_project:
-            if not self.is_this_db_in_ignore(db.db_postgres_name):
-                bd_that_were_deleted.append(db.db_postgres_name)
-                self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
-        if bd_that_were_deleted:
-            p.info(f"БЫЛИ УДАЛЕНЫ БД: {bd_that_were_deleted}")
+        for db in self.available_databases:
+            self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
+        if self.available_databases:
+            p.info(f"Были удалены эти БД: {[db.db_postgres_name for db in self.available_databases]}")
         else:
-            p.info("НЕ БЫЛО УДАЛЕНО НИ ОДНОЙ БД")
+            p.info("Не было удалено ни одной БД")
 
     @check_is_user_connected_to_free_db
     def create_project_databases(self) -> None:
@@ -153,12 +158,9 @@ class DbTool:
         создать пустые базы данных? которые есть в проекте
         """
         sql_string = "CREATE DATABASE {};"
-        bd_that_were_created = []
-        for db in self.databases_in_project:
-            if not self.is_this_db_in_ignore(db.db_postgres_name):
-                bd_that_were_created.append(db.db_postgres_name)
-                self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
-        if bd_that_were_created:
-            p.info(f"БЫЛИ СОЗДАНЫ ЭТИ БД: {bd_that_were_created}")
+        for db in self.available_databases:
+            self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
+        if self.available_databases:
+            p.info(f"Были созданы эти БД: {[db.db_postgres_name for db in self.available_databases]}")
         else:
-            p.info("НЕ БЫЛО СОЗДАНО НИ ОДНОЙ БД")
+            p.info("Не было создано ни одной БД")

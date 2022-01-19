@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        p.info('Начало скрипта')
+        p.info('НАЧАЛО СКРИПТА')
         if options['postgres']:
             Installer.drop_and_create_dbs()
         if options['migrations']:

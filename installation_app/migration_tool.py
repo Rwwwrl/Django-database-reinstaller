@@ -14,27 +14,45 @@ class MigrationTool:
     - создание и применение новых
     """
 
-    python_command = "sudo python3" if platform == "linux" else "python"
+    def __new__(cls):
+        cls.python_command = "sudo python3" if platform == "linux" else "python"
+        cls.user_defined_apps = AppTool.get_user_defined_apps()
+        cls.available_django_apps = list(filter(lambda app: not cls.is_app_in_ignore(app), cls.user_defined_apps))
+        return super().__new__(cls)
 
     @classmethod
     def delete_migration_files(cls) -> None:
         """
         удалить файлы миграций из папок приложений
         """
-        user_defined_apps = AppTool.get_user_defined_apps()
-        for app in user_defined_apps:
+        for app in cls.available_django_apps:
             migration_folder_path = os.path.join(settings.BASE_DIR, app, "migrations")
             for file in os.listdir(migration_folder_path):
                 if not file == "__init__.py":
                     file_path = os.path.join(migration_folder_path, file)
                     if os.path.isfile(file_path):
                         os.remove(file_path)
-            p.info(f"Были удалены миграции для приложения '{app}'")
+        if cls.available_django_apps:
+            p.info(f"Были удалены миграции из этих приложений: {cls.available_django_apps}")
+        else:
+            p.info("Не было удалено файлов миграции ни из одного приложения")
 
     @classmethod
     def makemigrations_and_migrate(cls):
-        cls.__run_python_command("makemigrations")
-        cls.__run_python_command("migrate")
+        for app in cls.available_django_apps:
+            cls.__run_python_command(f"makemigrations {app}")
+            cls.__run_python_command(f"migrate {app}")
+        if not cls.available_django_apps:
+            p.info("Не были создано и выполнено ни одной миграции")
+
+    @staticmethod
+    def is_app_in_ignore(app_name) -> bool:
+        """
+        проверить, есть ли этот приложение в списке игнора для сброса и применения новых миграций
+        ( в settings.DJANGO_APPS_TO_IGNORE )
+        """
+        django_apps_to_ignore = getattr(settings, "DJANGO_APPS_TO_IGNORE", [])
+        return django_apps_to_ignore == ["*"] or app_name in django_apps_to_ignore
 
     @classmethod
     def __run_python_command(cls, python_command) -> None:

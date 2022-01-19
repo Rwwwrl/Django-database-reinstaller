@@ -4,11 +4,12 @@ from django.apps import apps
 from django.conf import settings
 
 from pathlib import Path
+from typing import List
 
 
 class AppTool:
     @classmethod
-    def get_user_defined_apps(cls):
+    def get_user_defined_apps(cls) -> List[str]:
         """
         получить все django-приложения, определенные пользователем
         """

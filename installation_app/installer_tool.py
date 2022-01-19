@@ -1,5 +1,5 @@
 from .db_tool import DbTool
-from .migration_tool import MigrationTool as mt
+from .migration_tool import MigrationTool
 
 
 class Installer:
@@ -15,5 +15,6 @@ class Installer:
 
     @staticmethod
     def delete_and_update_migrations():
+        mt = MigrationTool()
         mt.delete_migration_files()
         mt.makemigrations_and_migrate()
