@@ -1,10 +1,11 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_COMMITTED
+from collections import namedtuple
+from typing import List
 
 from . import print_tool as p
 
 from django.conf import settings
-from collections import namedtuple
 
 # db_django_name - значение db в словаре settings.DATABASES (пример "default"),
 # db_postgres_name - значение db['NAME'] в словаре settings.DATABASES (пример "test"),
@@ -27,7 +28,14 @@ class DbTool:
         cls.databases_in_project = cls.__get_used_databases_in_project()
         return new_db_connection_instance
 
-    def __init__(self, db_name, db_user="postgres", db_host="localhost", db_port="5432", password=None):
+    def __init__(
+        self,
+        db_name,
+        db_user: str = "postgres",
+        db_host: str = "localhost",
+        db_port: str = "5432",
+        password: str = None,
+    ) -> None:
         connect_data = self.__get_bd_info_by_django_settings(db_name)
         if connect_data:
             self.connect_data = connect_data
@@ -43,15 +51,16 @@ class DbTool:
     def __enter__(self):
         self.__conn = psycopg2.connect(**self.connect_data)
         return self
-    
+
     def __exit__(self, exc_type, exc_value, traceback):
+        # Если во время транзация произошла ошибка - делаем роллбек else коммит
         if exc_type:
             self.__conn.rollback()
         else:
             self.__conn.commit()
         self.__conn.close()
 
-    def exec_request(self, sql_string, is_isolate_required: bool = False):
+    def exec_request(self, sql_string: str, is_isolate_required: bool = False) -> None:
         """
         выполнить sql запрос
         """
@@ -85,7 +94,7 @@ class DbTool:
         return inner
 
     @staticmethod
-    def __get_used_databases_in_project():
+    def __get_used_databases_in_project() -> List[tuple(str, str)]:
         """
         получить спосок используемых бд в проекте
         """
@@ -98,7 +107,7 @@ class DbTool:
                 databases_in_project.append(db_data)
         return databases_in_project
 
-    def __get_bd_info_by_django_settings(self, db_name):
+    def __get_bd_info_by_django_settings(self, db_name: str) -> None:
         """
         получить все настройки для бд из файла settings, чтобы не дублировать их
         """
@@ -118,7 +127,7 @@ class DbTool:
         )
 
     @check_is_user_connected_to_free_db
-    def drop_project_databases(self):
+    def drop_project_databases(self) -> None:
         """
         удалить все базы данных, которые есть в проекте
         """
@@ -127,7 +136,7 @@ class DbTool:
             self.exec_request(sql_string.format(db.db_postgres_name), is_isolate_required=True)
 
     @check_is_user_connected_to_free_db
-    def create_project_databases(self):
+    def create_project_databases(self) -> None:
         """
         создать пустые базы данных? которые есть в проекте
         """

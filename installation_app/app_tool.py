@@ -3,6 +3,8 @@ import os
 from django.apps import apps
 from django.conf import settings
 
+from pathlib import Path
+
 
 class AppTool:
     @classmethod
@@ -19,7 +21,7 @@ class AppTool:
         return user_defined_apps
 
     @staticmethod
-    def __is_django_app(folder_path):
+    def __is_django_app(folder_path: Path) -> bool:
         """
         проверить, является ли эта папка django-приложением ( = есть ли у него файл apps)
         """

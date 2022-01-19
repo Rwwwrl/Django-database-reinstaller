@@ -17,7 +17,7 @@ class MigrationTool:
     python_command = "sudo python3" if platform == "linux" else "python"
 
     @classmethod
-    def delete_migration_files(cls):
+    def delete_migration_files(cls) -> None:
         """
         удалить файлы миграций из папок приложений
         """
@@ -37,10 +37,13 @@ class MigrationTool:
         cls.__run_python_command("migrate")
 
     @classmethod
-    def __run_python_command(cls, python_command):
+    def __run_python_command(cls, python_command) -> None:
+        """
+        запуска питоновской джанго комманды
+        """
         command = cls.python_command + " manage.py " + python_command
-        result = os.system(command)
-        if not result:
+        result_status = os.system(command)
+        if not result_status:
             p.info(command + " успешно проведена")
         else:
             p.error(command + " проведена с ошибкой")
