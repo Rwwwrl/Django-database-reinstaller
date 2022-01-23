@@ -7,7 +7,7 @@
 
 1. Установить пакет:
 
-   - `pip install -i https://test.pypi.org/simple/ django-reinstallation-app==0.1`
+   - `pip install django-reinstallation-app==0.1`
 
    - Или, находясь внутри _database_installer:_ `pip install dist/django_reinstallation_app-0.1.tar.gz`
 
