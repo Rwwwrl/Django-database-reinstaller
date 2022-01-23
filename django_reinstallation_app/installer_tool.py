@@ -9,9 +9,9 @@ class Installer:
 
     @staticmethod
     def drop_and_create_dbs():
-        with DbTool(db_name="postgres") as postgres_db_instance:
-            postgres_db_instance.drop_project_databases()
-            postgres_db_instance.create_project_databases()
+        with DbTool() as connection:
+            connection.drop_project_databases()
+            connection.create_project_databases()
 
     @staticmethod
     def delete_and_update_migrations():

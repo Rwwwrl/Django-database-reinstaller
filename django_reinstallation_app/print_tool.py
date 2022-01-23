@@ -9,7 +9,3 @@ def info(string: str) -> None:
 
 def error(string: str) -> None:
   print('ERROR: ' + string)
-
-
-
-
