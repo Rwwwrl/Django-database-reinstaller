@@ -7,9 +7,9 @@
 
 1. Установить пакет:
 
-   - `pip install django-reinstallation-app==0.1`
+   - `pip install django-reinstallation-app`
 
-   - Или, находясь внутри _database_installer:_ `pip install dist/django_reinstallation_app-0.1.tar.gz`
+   - Или, находясь внутри _database_installer:_ `pip install dist/django_reinstallation_app-0.X.tar.gz`
 
 2. Добавить _django_reinstallation_app_ в _settings.INSTALLED_APPS_:
 

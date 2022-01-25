@@ -39,26 +39,14 @@ class DbTool:
         cls.db_connections.append(new_db_connection_instance)
         return new_db_connection_instance
 
-    def __init__(
-        self,
-        db_name: str = None,
-        db_user: str = "postgres",
-        db_host: str = "localhost",
-        db_port: str = "5432",
-        password: str = None,
-    ) -> None:
+    def __init__(self, db_name: str = None) -> None:
         """
         инициализация данных подключения
         1 - Если передаем db_name, то пытаемся найти настройки бд в settings.DATABASES, если не находим, то
         настройки подключения по умолчанию
         2 - Если мы не передаем db_name, то мы не подключаемся ни к какой бд (нужно для создания/удаления других бд)
         """
-        self.connect_data = {
-            "user": db_user,
-            "host": db_host,
-            "port": db_port,
-            "password": None,
-        }
+        self.connect_data = self.get_default_connection_config()
         if db_name:
             connect_data = self.__get_bd_info_by_django_settings(db_name)
             if connect_data:
@@ -116,6 +104,22 @@ class DbTool:
             raise e
 
         cursor.close()
+
+    def get_default_connection_config(self) -> dict[str, str]:
+        '''
+        получить дефолтные настройки подключение из setttings.DATABASES['default']
+        '''
+        default_db = settings.DATABASES['default']
+        user_value = default_db.get('USER', 'postgres')
+        host_value = default_db.get('HOST', 'localhost')
+        port_value = default_db.get('PORT', '5432')
+        password_value = default_db.get('PASSWORD', None)
+        return {
+            'user': user_value if user_value else 'postgres',
+            'host': host_value if host_value else 'localhost',
+            'port': port_value if port_value else '5432',
+            'password': password_value,
+        }
 
     def check_is_user_connected_to_free_db(func):
         """
