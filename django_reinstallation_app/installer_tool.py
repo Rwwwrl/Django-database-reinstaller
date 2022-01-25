@@ -4,9 +4,8 @@ from .migration_tool import MigrationTool
 
 class Installer:
     """
-    Главный класс скрипта, в нем вызывается все шаги скрипта
+    Главный класс скрипта, в нем определяются все основные шаги скрипта
     """
-
     @staticmethod
     def drop_and_create_dbs():
         with DbTool() as connection:

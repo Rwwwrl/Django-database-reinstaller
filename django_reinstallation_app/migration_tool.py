@@ -13,7 +13,6 @@ class MigrationTool:
     - удаление файлов старых миграций,
     - создание и применение новых
     """
-
     def __new__(cls):
         cls.__python_command = "sudo python3" if platform == "linux" else "python"
         cls.__user_defined_apps = AppTool.get_user_defined_apps()
@@ -60,7 +59,7 @@ class MigrationTool:
     @staticmethod
     def is_app_in_ignore(app_name) -> bool:
         """
-        проверить, есть ли этот приложение в списке игнора для сброса и применения новых миграций
+        проверить, есть ли приложение в списке игнора для сброса и применения новых миграций
         ( в settings.DJANGO_APPS_TO_IGNORE )
         """
         django_apps_to_ignore = getattr(settings, "DJANGO_APPS_TO_IGNORE", [])
@@ -69,7 +68,7 @@ class MigrationTool:
     @classmethod
     def __run_python_command(cls, python_command) -> None:
         """
-        запуска питоновской джанго комманды
+        запуск питоновской джанго комманды
         """
         command = cls.__python_command + " manage.py " + python_command
         result_status = os.system(command)

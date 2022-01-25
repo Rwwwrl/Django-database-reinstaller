@@ -1,14 +1,15 @@
+from collections import namedtuple
+from typing import List, Union
+
+from django.conf import settings
+
 import psycopg2
 from psycopg2.extensions import (
     ISOLATION_LEVEL_AUTOCOMMIT,
     ISOLATION_LEVEL_READ_COMMITTED,
 )
-from collections import namedtuple
-from typing import List, Union, Optional
 
 from . import print_tool as p
-
-from django.conf import settings
 
 # db_django_name - значение db в словаре settings.DATABASES (пример "default"),
 # db_postgres_name - значение db['NAME'] в словаре settings.DATABASES (пример "test"),
@@ -28,7 +29,7 @@ class DbTool:
             filter(
                 lambda db: not cls.is_this_db_in_ignore(db.db_postgres_name),
                 cls.__databases_used_in_project,
-            )
+            ),
         )
 
         for db_connection in cls.db_connections:
@@ -70,12 +71,12 @@ class DbTool:
                 self.connect_data.update({"database": db_name})
                 p.info(
                     f"""Не было найдено настройки подключений для вашей бд в settings.DATABASE,
-                     были использована следующая конфигурация подключения: {self.connect_data}"""
+                     были использована следующая конфигурация подключения: {self.connect_data}""",
                 )
             return
         p.info(
             f"""Вы не подключены ни к какой бд, ваши настройки подкючения: {self.connect_data},
-         если вы хотите подключиться к одной из бд, укажите db_name при создание экземляра класса DbTool."""
+         если вы хотите подключиться к одной из бд, укажите db_name при создание экземляра класса DbTool.""",
         )
 
     @property
@@ -118,10 +119,8 @@ class DbTool:
 
     def check_is_user_connected_to_free_db(func):
         """
-        для удаления и создания БД мы должны быть подключены в бд "postgres"
-        иначе будет ошибка
+        Для удаления и создание БД мы не должны быть подключены к одной из этих бд
         """
-
         def inner(self_instance, *args, **kwargs):
             connected_database = self_instance.connect_data.get("database", None)
             if connected_database and connected_database in self_instance.available_databases:
@@ -134,7 +133,7 @@ class DbTool:
     @staticmethod
     def __get_used_databases_in_project() -> List[tuple[str, str]]:
         """
-        получить спосок используемых бд в проекте
+        получить список используемых бд в проекте
         """
         database_dict = settings.DATABASES
         databases_in_project = []
@@ -161,7 +160,8 @@ class DbTool:
                     "password": db_config.get("PASSWORD", None),
                 }
         p.info(
-            f"Не было найдено настроек для бд '{db_name}' в settings.DATABASES, будут использованы настройки, которые вы передали в экземляр"
+            f'''Не было найдено настроек для бд '{db_name}' в settings.DATABASES, будут использованы настройки,
+             которые вы передали в экземляр''',
         )
 
     @staticmethod
@@ -189,7 +189,7 @@ class DbTool:
     @check_is_user_connected_to_free_db
     def create_project_databases(self) -> None:
         """
-        создать пустые базы данных? которые есть в проекте
+        создать пустые базы данных, которые есть в проекте
         """
         sql_string = "CREATE DATABASE {};"
         for db in self.__available_databases:

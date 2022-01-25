@@ -1,10 +1,9 @@
 import os
+from pathlib import Path
+from typing import List
 
 from django.apps import apps
 from django.conf import settings
-
-from pathlib import Path
-from typing import List
 
 
 class AppTool:
@@ -27,5 +26,4 @@ class AppTool:
         проверить, является ли эта папка django-приложением ( = есть ли у него файл apps)
         """
         apps_file_path = os.path.join(folder_path, "apps.py")
-        result = os.path.exists(apps_file_path) and os.path.isfile(apps_file_path)
         return os.path.exists(apps_file_path) and os.path.isfile(apps_file_path)
