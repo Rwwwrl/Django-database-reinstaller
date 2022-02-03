@@ -1,2 +1,3 @@
 django_reinstallation_app.egg-info
 .vscode
+__pycache__
