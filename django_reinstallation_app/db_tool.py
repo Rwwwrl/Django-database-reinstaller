@@ -46,6 +46,9 @@ class DbTool:
         настройки подключения по умолчанию
         2 - Если мы не передаем db_name, то мы не подключаемся ни к какой бд (нужно для создания/удаления других бд)
         """
+        # не нужно опять настраивать инстанс, если мы уже это делали.
+        if hasattr(self, 'is_initialized'):
+            return
         self.connect_data = self.get_default_connection_config()
         if db_name:
             connect_data = self.__get_bd_info_by_django_settings(db_name)
@@ -66,6 +69,7 @@ class DbTool:
             f"""Вы не подключены ни к какой бд, ваши настройки подкючения: {self.connect_data},
          если вы хотите подключиться к одной из бд, укажите db_name при создание экземляра класса DbTool.""",
         )
+        self.is_initialized = True
 
     @property
     def databases_used_in_project(self):
