@@ -11,19 +11,18 @@ from psycopg2.extensions import (
 
 from . import print_tool as p
 
+from .services.singletone import DbToolSingletone
+
 # db_django_name - значение db в словаре settings.DATABASES (пример "default"),
 # db_postgres_name - значение db['NAME'] в словаре settings.DATABASES (пример "test"),
 DbSettingData = namedtuple("DbSettingData", ["db_django_name", "db_postgres_name"])
 
 
-class DbTool:
+class DbTool(metaclass=DbToolSingletone):
     """
     Класс для работы с базой данных, синглтон
     """
-
-    db_connections = []
-
-    def __new__(cls, db_name: str = None, *args, **kwargs):
+    def __new__(cls, *, db_name: str = None, **kwargs):
         cls._databases_used_in_project = cls._get_used_databases_in_project()
         cls._available_databases = list(
             filter(
@@ -32,14 +31,10 @@ class DbTool:
             ),
         )
 
-        for db_connection in cls.db_connections:
-            if db_connection.connect_data.get("database", None) == db_name:
-                return db_connection
         new_db_connection_instance = super().__new__(cls)
-        cls.db_connections.append(new_db_connection_instance)
         return new_db_connection_instance
 
-    def __init__(self, db_name: str = None) -> None:
+    def __init__(self, *, db_name: str = None) -> None:
         """
         инициализация данных подключения
         1 - Если передаем db_name, то пытаемся найти настройки бд в settings.DATABASES, если не находим, то
