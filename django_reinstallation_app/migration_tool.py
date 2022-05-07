@@ -32,7 +32,9 @@ class MigrationTool:
     """
     def __new__(cls):
         cls._user_defined_apps = AppTool.get_user_defined_apps()
-        cls._available_django_apps = list(filter(lambda app: not cls.is_app_in_ignore(app), cls._user_defined_apps))
+        cls._available_django_apps = list(
+            filter(lambda app: not AppTool._is_app_in_ignore(app), cls._user_defined_apps)
+        )
         return super().__new__(cls)
 
     @property
@@ -69,16 +71,7 @@ class MigrationTool:
             p.info("Не были создано и выполнено ни одной миграции")
 
     @staticmethod
-    def is_app_in_ignore(app_name: str) -> bool:
-        """
-        проверить, есть ли приложение в списке игнора для сброса и применения новых миграций
-        ( в settings.DJANGO_APPS_TO_IGNORE )
-        """
-        django_apps_to_ignore = getattr(settings, "DJANGO_APPS_TO_IGNORE", [])
-        return django_apps_to_ignore == ["*"] or app_name in django_apps_to_ignore
-
-    @classmethod
-    def _run_python_command(cls, python_command: str) -> None:
+    def _run_python_command(python_command: str) -> None:
         """
         запуск питоновской джанго комманды
         """
