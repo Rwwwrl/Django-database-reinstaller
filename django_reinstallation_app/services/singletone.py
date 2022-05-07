@@ -30,9 +30,12 @@ class ClassicSingletone(SingletoneBaseClass):
     def _already_created(self):
         return self.key in self._instances
 
+
 class DbToolSingletone(ClassicSingletone):
+    def __call__(cls, *args, **kwargs):
+        instance = super().__call__(*args, **kwargs)
+        instance.is_initialized = True
+        return instance
 
     def _get_key(self, **kwargs):
         return kwargs.get('db_name')
-    
-

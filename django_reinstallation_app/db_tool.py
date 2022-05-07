@@ -11,29 +11,17 @@ from psycopg2.extensions import (
 
 from . import print_tool as p
 
-from .services.singletone import DbToolSingletone
+from .services.tools_initializers import DbToolInitializer
 
 # db_django_name - значение db в словаре settings.DATABASES (пример "default"),
 # db_postgres_name - значение db['NAME'] в словаре settings.DATABASES (пример "test"),
 DbSettingData = namedtuple("DbSettingData", ["db_django_name", "db_postgres_name"])
 
 
-class DbTool(metaclass=DbToolSingletone):
+class DbTool(metaclass=DbToolInitializer):
     """
-    Класс для работы с базой данных, синглтон
+    Класс для работы с базой данных
     """
-    def __new__(cls, *, db_name: str = None, **kwargs):
-        cls._databases_used_in_project = cls._get_used_databases_in_project()
-        cls._available_databases = list(
-            filter(
-                lambda db: not cls._is_this_db_in_ignore(db.db_postgres_name),
-                cls._databases_used_in_project,
-            ),
-        )
-
-        new_db_connection_instance = super().__new__(cls)
-        return new_db_connection_instance
-
     def __init__(self, *, db_name: str = None) -> None:
         """
         инициализация данных подключения
@@ -44,7 +32,6 @@ class DbTool(metaclass=DbToolSingletone):
         # не нужно опять настраивать инстанс, если мы уже это делали.
         if hasattr(self, 'is_initialized'):
             return
-        default_connection_data = self.get_default_connection_config()
         if db_name:
             connection_data = self._get_db_info_by_django_settings(db_name)
             if connection_data:
@@ -54,19 +41,18 @@ class DbTool(metaclass=DbToolSingletone):
                      были использована следующая конфигурация подключения: {self.connection_data}""",
                 )
             else:
-                self.connection_data = default_connection_data
+                self.connection_data = self._default_connection_data
                 self.connection_data.update({"database": db_name})
                 p.info(
                     f"""Не было найдено настройки подключений для вашей бд в settings.DATABASE,
                      были использована следующая конфигурация подключения: {self.connection_data}""",
                 )
             return
-        self.connection_data = default_connection_data
+        self.connection_data = self._default_connection_data
         p.info(
             f"""Вы не подключены ни к какой бд, ваши настройки подкючения: {self.connection_data},
          если вы хотите подключиться к одной из бд, укажите db_name при создание экземляра класса DbTool.""",
         )
-        self.is_initialized = True
 
     def __enter__(self):
         self._conn = psycopg2.connect(**self.connection_data)
@@ -130,7 +116,8 @@ class DbTool(metaclass=DbToolSingletone):
         databases_to_ignore = getattr(settings, "DATABASES_TO_IGNORE", [])
         return databases_to_ignore == ["*"] or db_name in databases_to_ignore
 
-    def get_default_connection_config(self) -> Dict[str, str]:
+    @staticmethod
+    def get_default_connection_config() -> Dict[str, str]:
         '''
         получить дефолтные настройки подключение из setttings.DATABASES['default']
         '''
