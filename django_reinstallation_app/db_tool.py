@@ -10,7 +10,6 @@ from psycopg2.extensions import (
 )
 
 from . import print_tool as p
-
 from .services.tools_initializers import DbToolInitializer
 
 # db_django_name - значение db в словаре settings.DATABASES (пример "default"),
@@ -173,7 +172,9 @@ class DbTool(metaclass=DbToolInitializer):
         for db in self._available_databases:
             try:
                 self._exec_request(
-                    conn=self._conn, sql_string=sql_string.format(db.db_postgres_name), is_isolate_required=True
+                    conn=self._conn,
+                    sql_string=sql_string.format(db.db_postgres_name),
+                    is_isolate_required=True,
                 )
             except Exception as e:
                 print('Произошла непредвиденная ошибка при удалении БД')
@@ -195,7 +196,9 @@ class DbTool(metaclass=DbToolInitializer):
         for db in self._available_databases:
             try:
                 self._exec_request(
-                    conn=self._conn, sql_string=sql_string.format(db.db_postgres_name), is_isolate_required=True
+                    conn=self._conn,
+                    sql_string=sql_string.format(db.db_postgres_name),
+                    is_isolate_required=True,
                 )
             except Exception as e:
                 print('Произошла непредвиденная ошибка при создании БД')

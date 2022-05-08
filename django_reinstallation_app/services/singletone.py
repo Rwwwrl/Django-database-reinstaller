@@ -1,6 +1,3 @@
-import abc
-
-
 class SingletoneBaseClass(type):
 
     _instances = {}
@@ -13,6 +10,10 @@ class SingletoneBaseClass(type):
         return cls._instances[cls.key]
 
     def _get_key(self, **kwargs):
+        '''
+        возвращаем ключ, по которому мы можем идентифицировать инстанс
+        в словаре _instances
+        '''
         raise NotImplementedError
 
     def _already_created(self):

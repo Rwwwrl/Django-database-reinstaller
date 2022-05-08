@@ -9,8 +9,7 @@ from django.conf import settings
 class AppTool:
     '''
     Класс, в котором сосредоточена логика работы с джанго приложениями
-    ''' 
-
+    '''
     @classmethod
     def get_user_defined_apps(cls) -> List[str]:
         """

@@ -33,7 +33,7 @@ class MigrationTool:
     def __new__(cls):
         cls._user_defined_apps = AppTool.get_user_defined_apps()
         cls._available_django_apps = list(
-            filter(lambda app: not AppTool._is_app_in_ignore(app), cls._user_defined_apps)
+            filter(lambda app: not AppTool._is_app_in_ignore(app), cls._user_defined_apps),
         )
         return super().__new__(cls)
 
